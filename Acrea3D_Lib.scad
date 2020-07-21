@@ -53,3 +53,79 @@ module A3_polyChannel(A3_Points, A3_Width, A3_Height, A3_Centralize = true) {
     AF_polyChannel_inner(A3_Points, 1);
 }
 //End Module
+
+/*
+serpentin2D creates a serpentinge across a single plane. 
+@A3_chanCrossSection [int,int] the width and the height of the channels in mm
+@A3_globalSize [int,int] The length and width of the entire serpentine structure viewed from above in mm
+@A3_serpentineLength gives the total length of the channel. If A3_serpentineLength is not 0 either the number of channels needs to be given with the A3_period or the global size needs to be given but not both
+@A3_numChans is the number of lengths of the serpentine there are 
+@A3_period is the A3_period length between lengths of the serpentine
+*/
+module A3_serpentine2D(A3_chanCrossSection, A3_globalSize = [0,0], A3_serpentineLength = 0, A3_numChans = 0, A3_period = 0, A3_center = true){
+    if(A3_serpentineLength != 0){
+         if(A3_numChans != 0 && A3_period != 0){
+             A3_globalLength = A3_numChans * A3_period;
+             A3_globalWidth = (A3_serpentineLength - A3_globalLength) / (A3_numChans);
+             A3_xTrans = A3_center == true ? -A3_globalLength / 2 : 0;
+             for(i = [0:A3_numChans]){
+                 if(i == 0){
+                     A3_p1 = [i * A3_period,0,0];
+                     A3_p2 = [i * A3_period,pow(-1, i+1) * A3_globalWidth/2,0];
+                     A3_p3 = [(i+1) * A3_period,pow(-1,i+1) * A3_globalWidth/2,0];
+                     translate([A3_xTrans,0,0])
+                     A3_polyChannel([A3_p1,A3_p2,A3_p3],A3_chanCrossSection[0],A3_chanCrossSection[1]);
+                 }
+                 else if(i == A3_numChans){
+                     A3_p1 = [i * A3_period,pow(-1,i) * A3_globalWidth/2,0];
+                     A3_p2 = [i * A3_period,0,0];
+                     translate([A3_xTrans,0,0])
+                     A3_polyChannel([A3_p1,A3_p2],A3_chanCrossSection[0],A3_chanCrossSection[1]); 
+                 }
+                 else{
+                     A3_p1 = [i * A3_period,pow(-1,i) * A3_globalWidth/2,0];
+                     A3_p2 = [i * A3_period,pow(-1, i+1) * A3_globalWidth/2,0];
+                     A3_p3 = [(i+1) * A3_period,pow(-1,i+1) * A3_globalWidth/2,0];
+                     translate([A3_xTrans,0,0])
+                     A3_polyChannel([A3_p1,A3_p2,A3_p3],A3_chanCrossSection[0],A3_chanCrossSection[1]);
+                 }
+             }
+         }
+         else if(A3_globalSize != [0,0]){
+             A3_xTrans = A3_center == true ? -A3_globalSize[0]/2 : 0;
+             A3_numChans = (A3_serpentineLength - A3_globalSize[0])/A3_globalSize[1];
+             A3_period = A3_globalSize[0]/A3_numChans;
+             A3_globalWidth = A3_globalSize[1];
+             A3_globalLength = A3_globalSize[0];
+             for(i = [0:A3_numChans]){
+                 if(i == 0){
+                     A3_p1 = [i * A3_period,0,0];
+                     A3_p2 = [i * A3_period,pow(-1, i+1) * A3_globalWidth/2,0];
+                     A3_p3 = [(i+1) * A3_period,pow(-1,i+1) * A3_globalWidth/2,0];
+                     translate([A3_xTrans,0,0])
+                     A3_polyChannel([A3_p1,A3_p2,A3_p3],A3_chanCrossSection[0],A3_chanCrossSection[1]);
+                 }
+                 else if(i >= A3_numChans - 1){
+                     A3_p1 = [i * A3_period,pow(-1,i) * A3_globalWidth/2,0];
+                     A3_p2 = [i * A3_period,0,0];
+                     translate([A3_xTrans,0,0])
+                     A3_polyChannel([A3_p1,A3_p2],A3_chanCrossSection[0],A3_chanCrossSection[1]); 
+                 }
+                 else{
+                     A3_p1 = [i * A3_period,pow(-1,i) * A3_globalWidth/2,0];
+                     A3_p2 = [i * A3_period,pow(-1, i+1) * A3_globalWidth/2,0];
+                     A3_p3 = [(i+1) * A3_period,pow(-1,i+1) * A3_globalWidth/2,0];
+                     translate([A3_xTrans,0,0])
+                     A3_polyChannel([A3_p1,A3_p2,A3_p3],A3_chanCrossSection[0],A3_chanCrossSection[1]);
+                 }
+             }             
+         }
+         else{echo("Serpentine after Length not sufficiently defined");}
+    }
+    else if (A3_globalSize != [0,0]){
+        
+    }
+    else{
+        echo("Serpentine not sufficiently defined");
+    }
+}
